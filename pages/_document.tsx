@@ -1,4 +1,9 @@
-import { Html, Head, Main, NextScript } from 'next/document'
+/*
+ * @Description:
+ * @Author: Sunly
+ * @Date: 2023-11-22 14:17:33
+ */
+import { Html, Head, Main, NextScript } from "next/document";
 
 export default function Document() {
   return (
@@ -9,5 +14,5 @@ export default function Document() {
         <NextScript />
       </body>
     </Html>
-  )
+  );
 }
