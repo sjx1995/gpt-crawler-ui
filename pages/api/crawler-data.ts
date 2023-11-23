@@ -1,3 +1,8 @@
+/*
+ * @Description: 爬取网页内容
+ * @Author: Sunly
+ * @Date: 2023-11-22 14:17:33
+ */
 import { Configuration, PlaywrightCrawler } from "crawlee";
 import type { Page } from "playwright";
 
@@ -10,36 +15,47 @@ export type ICrawlerParams = {
   selector: string;
 };
 
-type ICrawlerData = {
+export type ICrawlerRes = {
   title: string;
   url: string;
   html: string;
 };
 
-// const TARGET_URL = "https://vuejs.org/";
-// const MATCH_URL = "https://vuejs.org/**";
-// const MAX_PAGES = 3;
-const crawlerData: ICrawlerData[] = [];
-// const SELECTOR = "body";
+export type ICrawlerData =
+  | {
+      success: true;
+      data: ICrawlerRes[];
+    }
+  | {
+      success: false;
+      errMessage: string;
+    };
 
 function getHTML(page: Page, selector: string) {
   return page.evaluate((selector) => {
     const el: HTMLElement | null = document.querySelector(selector);
-    return el?.innerHTML || "";
+    return el?.innerText || "";
   }, selector);
 }
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ICrawlerData[]>
+  res: NextApiResponse<ICrawlerData>
 ) {
   const query = req.query as { [K in keyof ICrawlerParams]: string };
-  const { target_url, selector } = query;
+  let target_url = query.target_url.trim();
+  if (!target_url) {
+    res
+      .status(400)
+      .json({ success: false, errMessage: "target_url is required" });
+  }
+  let selector = query.selector.trim() || "body";
   let max_pages = Number(query.max_pages) > 50 ? 50 : Number(query.max_pages);
-  let match_urls = query.match_urls.split(",");
+  let match_urls = query.match_urls
+    .split(",")
+    .filter((content) => content.trim() !== "");
 
-  // 清空列表
-  crawlerData.splice(0);
+  const crawlerData: ICrawlerRes[] = [];
 
   // 创建爬虫
   const crawler = new PlaywrightCrawler({
@@ -60,12 +76,19 @@ export default async function handler(
   });
 
   // 开始爬取
-  await crawler.run([target_url]);
+  try {
+    await crawler.run([target_url]);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      errMessage: (error as Error).message || "请求失败",
+    });
+  }
 
   // 重置全局状态
   Configuration.resetGlobalState();
   // 关闭爬虫
   await crawler.teardown();
 
-  res.status(200).json(crawlerData);
+  res.status(200).json({ success: true, data: crawlerData });
 }
