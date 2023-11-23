@@ -4,8 +4,8 @@
  * @Date: 2023-11-22 14:17:33
  */
 import Head from "next/head";
-import { Inter } from "next/font/google";
-import { Input, InputNumber, Button, Space, Divider } from "antd";
+import { Input, InputNumber, Button, Space, Divider, message } from "antd";
+
 import styles from "@/styles/Home.module.css";
 
 import type {
@@ -14,10 +14,11 @@ import type {
   ICrawlerRes,
 } from "./api/crawler-data";
 import { useState } from "react";
-
-const inter = Inter({ subsets: ["latin"] });
+import Footer from "./footer";
 
 export default function Home() {
+  const [messageApi, contextHolder] = message.useMessage();
+
   const [urlsData, setUrlsData] = useState<ICrawlerParams>({
     target_urls: [""],
     match_urls: [],
@@ -79,7 +80,12 @@ export default function Home() {
       .then((res: ICrawlerData) => {
         if (res.success) {
           downloadJSON(res.data);
+        } else {
+          throw new Error(res.errMessage);
         }
+      })
+      .catch((err: Error) => {
+        messageApi.error(err.message || "请求失败");
       })
       .finally(() => {
         setLoading(false);
@@ -103,11 +109,18 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={`${styles.main} ${inter.className}`}>
+      {contextHolder}
+
+      <main className={`${styles.main} `}>
         <Divider orientation="left">目标网址</Divider>
 
         {urlsData.target_urls.map((url, i) => (
-          <Space.Compact block direction="horizontal" key={i}>
+          <Space.Compact
+            block
+            direction="horizontal"
+            key={i}
+            className={`${styles.item}`}
+          >
             <Input
               value={url}
               placeholder="请输入目标网址"
@@ -118,12 +131,21 @@ export default function Home() {
             </Button>
           </Space.Compact>
         ))}
-        <Button onClick={() => handleAddUrl("target_urls")} block>
+        <Button
+          onClick={() => handleAddUrl("target_urls")}
+          block
+          className={`${styles.item} `}
+        >
           添加一条目标网址
         </Button>
         <Divider orientation="left">匹配网址规则</Divider>
         {urlsData.match_urls.map((url, i) => (
-          <Space.Compact block direction="horizontal" key={i}>
+          <Space.Compact
+            block
+            direction="horizontal"
+            key={i}
+            className={`${styles.item} `}
+          >
             <Input
               value={url}
               placeholder="请输入匹配网址规则"
@@ -134,7 +156,11 @@ export default function Home() {
             </Button>
           </Space.Compact>
         ))}
-        <Button onClick={() => handleAddUrl("match_urls")} block>
+        <Button
+          onClick={() => handleAddUrl("match_urls")}
+          block
+          className={`${styles.item} `}
+        >
           添加一条匹配规则
         </Button>
         <Divider orientation="left">爬取页面最大数量</Divider>
@@ -146,17 +172,26 @@ export default function Home() {
           step={1}
           value={urlsData.max_pages}
           onChange={(value) => handleSetData("max_pages", value || 5)}
+          className={`${styles.item} `}
         />
         <Divider orientation="left">页面CSS选择器</Divider>
         <Input
           value={urlsData.selector}
           placeholder="请输入页面内容选择器，不填写则默认读取整个页面"
           onChange={(e) => handleSetData("selector", e.target.value)}
+          className={`${styles.item} `}
         />
-        <Button onClick={handleClick} loading={loading}>
+        <Button
+          onClick={handleClick}
+          loading={loading}
+          type="primary"
+          className={`${styles.item} ${styles.submitBtn}`}
+          block
+        >
           开始请求数据
         </Button>
       </main>
+      <Footer />
     </>
   );
 }
