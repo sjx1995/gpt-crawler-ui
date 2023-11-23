@@ -213,7 +213,7 @@ export default function Home() {
           <Tooltip
             title={
               <>
-                <div>1. 数量越多，速度越慢</div>
+                <div>1. 数量越多，爬取速度越慢</div>
                 <div>2. 太大的文本GPT无法分析</div>
               </>
             }

@@ -3,7 +3,11 @@
  * @Author: Sunly
  * @Date: 2023-11-22 14:17:33
  */
-import { Configuration, PlaywrightCrawler } from "crawlee";
+import {
+  Configuration,
+  PlaywrightCrawler,
+  purgeDefaultStorages,
+} from "crawlee";
 import type { Page } from "playwright";
 
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -111,6 +115,7 @@ export default async function handler(
 
   // 重置全局状态
   Configuration.resetGlobalState();
+  await purgeDefaultStorages();
   // 关闭爬虫
   await crawler.teardown();
 
