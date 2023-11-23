@@ -12,7 +12,11 @@
 
 .submitBtn {
   margin-top: 16px;
-  display: block;
+  width: calc((100% - 80px) / 2);
+}
+
+.submitBtn + .submitBtn {
+  margin-right: 16px;
 }
 
 .ruleDesc {

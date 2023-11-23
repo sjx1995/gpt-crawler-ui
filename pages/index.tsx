@@ -72,6 +72,15 @@ export default function Home() {
     });
   };
 
+  const handleReset = () => {
+    setUrlsData({
+      target_urls: [""],
+      match_urls: [],
+      max_pages: 5,
+      selector: "",
+    });
+  };
+
   const [loading, setLoading] = useState(false);
   const handleClick = () => {
     const { target_urls, match_urls, max_pages, selector } = urlsData;
@@ -142,7 +151,7 @@ export default function Home() {
       {contextHolder}
       {modalContextHolder}
 
-      <main className={`${styles.main} `}>
+      <main className={`${styles.main}`}>
         <Divider orientation="left">目标网址</Divider>
 
         {urlsData.target_urls.map((url, i) => (
@@ -165,7 +174,7 @@ export default function Home() {
         <Button
           onClick={() => handleAddUrl("target_urls")}
           block
-          className={`${styles.item} `}
+          className={`${styles.item}`}
         >
           添加一条目标网址
         </Button>
@@ -189,7 +198,7 @@ export default function Home() {
             block
             direction="horizontal"
             key={i}
-            className={`${styles.item} `}
+            className={`${styles.item}`}
           >
             <Input
               value={url}
@@ -204,7 +213,7 @@ export default function Home() {
         <Button
           onClick={() => handleAddUrl("match_urls")}
           block
-          className={`${styles.item} `}
+          className={`${styles.item}`}
         >
           添加一条匹配规则
         </Button>
@@ -229,7 +238,7 @@ export default function Home() {
           step={1}
           value={urlsData.max_pages}
           onChange={(value) => handleSetData("max_pages", value || 5)}
-          className={`${styles.item} `}
+          className={`${styles.item}`}
           addonAfter={"1 ~ 50"}
         />
         <Divider orientation="left">内容CSS选择器</Divider>
@@ -237,17 +246,25 @@ export default function Home() {
           value={urlsData.selector}
           placeholder="默认为空，表示读取整个页面"
           onChange={(e) => handleSetData("selector", e.target.value)}
-          className={`${styles.item} `}
+          className={`${styles.item}`}
         />
-        <Button
-          onClick={handleClick}
-          loading={loading}
-          type="primary"
-          className={`${styles.item} ${styles.submitBtn}`}
-          block
-        >
-          开始请求数据
-        </Button>
+        <div>
+          <Button
+            onClick={handleReset}
+            loading={loading}
+            className={`${styles.item} ${styles.submitBtn}`}
+          >
+            重置设置
+          </Button>
+          <Button
+            onClick={handleClick}
+            loading={loading}
+            type="primary"
+            className={`${styles.item} ${styles.submitBtn}`}
+          >
+            开始请求数据
+          </Button>
+        </div>
       </main>
       <Footer />
     </>
