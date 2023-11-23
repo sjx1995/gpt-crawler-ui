@@ -9,7 +9,7 @@ import type { Page } from "playwright";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 export type ICrawlerParams = {
-  target_url: string;
+  target_urls: string[];
   match_urls: string[];
   max_pages: number;
   selector: string;
@@ -38,22 +38,46 @@ function getHTML(page: Page, selector: string) {
   }, selector);
 }
 
+function filterValidURLs(urlStr: string): string[] {
+  const urls = urlStr.split(",");
+  return urls.filter((url) => {
+    url = url.trim();
+    url =
+      url.startsWith("https://") || url.startsWith("http://")
+        ? url
+        : `https://${url}`;
+    try {
+      new URL(url);
+      return url;
+    } catch (error) {
+      return false;
+    }
+  });
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ICrawlerData>
 ) {
+  console.log("=============req.query");
+  console.log(
+    "🚀 ~ file: crawler-data.ts:63 ~ req.query.target_urls:",
+    req.query.target_urls
+  );
   const query = req.query as { [K in keyof ICrawlerParams]: string };
-  let target_url = query.target_url.trim();
-  if (!target_url) {
+  console.log(
+    "🚀 ~ file: crawler-data.ts:63 ~ req.query.target_urls:1111",
+    query.target_urls
+  );
+  let target_urls = filterValidURLs(query.target_urls);
+  if (!target_urls.length) {
     res
       .status(400)
-      .json({ success: false, errMessage: "target_url is required" });
+      .json({ success: false, errMessage: "请传入有效的目标网址" });
   }
   let selector = query.selector.trim() || "body";
   let max_pages = Number(query.max_pages) > 50 ? 50 : Number(query.max_pages);
-  let match_urls = query.match_urls
-    .split(",")
-    .filter((content) => content.trim() !== "");
+  let match_urls = filterValidURLs(query.match_urls);
 
   const crawlerData: ICrawlerRes[] = [];
 
@@ -77,7 +101,7 @@ export default async function handler(
 
   // 开始爬取
   try {
-    await crawler.run([target_url]);
+    await crawler.run(target_urls);
   } catch (error) {
     res.status(500).json({
       success: false,

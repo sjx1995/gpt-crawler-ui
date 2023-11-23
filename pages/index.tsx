@@ -19,7 +19,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   const [urlsData, setUrlsData] = useState<ICrawlerParams>({
-    target_url: "",
+    target_urls: [""],
     match_urls: [],
     max_pages: 5,
     selector: "",
@@ -31,10 +31,9 @@ export default function Home() {
     idx?: number
   ) => {
     setUrlsData((prev) => {
-      if (key === "match_urls" && idx != null) {
+      if ((key === "match_urls" || key === "target_urls") && idx != null) {
         const obj = { ...prev };
-        obj.match_urls[idx] = value as string;
-        console.log(obj);
+        obj[key][idx] = value as string;
         return obj;
       }
       return {
@@ -44,32 +43,32 @@ export default function Home() {
     });
   };
 
-  const handleDelMatchUrl = (i: number) => {
+  const handleDelUrl = (key: "target_urls" | "match_urls", i: number) => {
     setUrlsData((obj) => {
-      const urls = [...obj.match_urls];
+      const urls = [...obj[key]];
       urls.splice(i, 1);
       return {
         ...obj,
-        match_urls: urls,
+        [key]: urls,
       };
     });
   };
 
-  const handleAddMatchUrl = () => {
-    setUrlsData((obj) => ({
-      ...obj,
-      match_urls: [...obj.match_urls, ""],
-    }));
+  const handleAddUrl = (key: "target_urls" | "match_urls") => {
+    setUrlsData((prev) => {
+      const obj = { ...prev, [key]: [...prev[key], ""] };
+      return obj;
+    });
   };
 
   const [loading, setLoading] = useState(false);
   const handleClick = () => {
-    const { target_url, match_urls, max_pages, selector } = urlsData;
+    const { target_urls, match_urls, max_pages, selector } = urlsData;
 
     setLoading(true);
     fetch(
       `/api/crawler-data` +
-        `?target_url=${target_url}` +
+        `?target_urls=${target_urls}` +
         `&match_urls=${match_urls}` +
         `&max_pages=${max_pages}` +
         `&selector=${selector}`
@@ -106,11 +105,22 @@ export default function Home() {
 
       <main className={`${styles.main} ${inter.className}`}>
         <Divider orientation="left">目标网址</Divider>
-        <Input
-          value={urlsData.target_url}
-          placeholder="请输入目标网址"
-          onChange={(e) => handleSetData("target_url", e.target.value)}
-        />
+
+        {urlsData.target_urls.map((url, i) => (
+          <Space.Compact block direction="horizontal" key={i}>
+            <Input
+              value={url}
+              placeholder="请输入目标网址"
+              onChange={(e) => handleSetData("target_urls", e.target.value, i)}
+            />
+            <Button danger onClick={() => handleDelUrl("target_urls", i)}>
+              删除
+            </Button>
+          </Space.Compact>
+        ))}
+        <Button onClick={() => handleAddUrl("target_urls")} block>
+          添加一条目标网址
+        </Button>
         <Divider orientation="left">匹配网址规则</Divider>
         {urlsData.match_urls.map((url, i) => (
           <Space.Compact block direction="horizontal" key={i}>
@@ -119,12 +129,12 @@ export default function Home() {
               placeholder="请输入匹配网址规则"
               onChange={(e) => handleSetData("match_urls", e.target.value, i)}
             />
-            <Button danger onClick={() => handleDelMatchUrl(i)}>
+            <Button danger onClick={() => handleDelUrl("match_urls", i)}>
               删除
             </Button>
           </Space.Compact>
         ))}
-        <Button onClick={handleAddMatchUrl} block>
+        <Button onClick={() => handleAddUrl("match_urls")} block>
           添加一条匹配规则
         </Button>
         <Divider orientation="left">爬取页面最大数量</Divider>
