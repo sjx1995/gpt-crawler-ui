@@ -1,11 +1,13 @@
 .main {
   padding: 16px 24px;
   min-height: calc(100vh - 64px - 16px * 2);
+  max-width: 640px;
+  margin: 0 auto;
 }
 
 .item {
   max-width: 600px;
-  margin: 8px 0;
+  margin: 8px 20px;
 }
 
 .submitBtn {
