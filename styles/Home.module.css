@@ -1,6 +1,6 @@
 .main {
   padding: 16px 24px;
-  min-height: calc(100vh - 64px - 16px * 2);
+  min-height: calc(100vh - 40px - 16px * 2);
   max-width: 640px;
   margin: 0 auto;
 }
@@ -23,10 +23,11 @@
 }
 
 .footer {
-  height: 64px;
-  line-height: 64px;
+  height: 40px;
+  line-height: 40px;
   text-align: center;
   color: #aaa;
+  font-size: 12px;
 }
 
 .footer a {
