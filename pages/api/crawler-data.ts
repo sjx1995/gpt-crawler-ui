@@ -44,35 +44,29 @@ function getHTML(page: Page, selector: string) {
 
 function filterValidURLs(urlStr: string): string[] {
   const urls = urlStr.split(",");
-  return urls.filter((url) => {
-    url = url.trim();
-    url =
+  return urls
+    .map((url) =>
       url.startsWith("https://") || url.startsWith("http://")
         ? url
-        : `https://${url}`;
-    try {
-      new URL(url);
-      return url;
-    } catch (error) {
-      return false;
-    }
-  });
+        : `https://${url}`
+    )
+    .filter((url) => {
+      url = url.trim();
+      if (!url) return false;
+      try {
+        new URL(url);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    });
 }
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ICrawlerData>
 ) {
-  console.log("=============req.query");
-  console.log(
-    "🚀 ~ file: crawler-data.ts:63 ~ req.query.target_urls:",
-    req.query.target_urls
-  );
   const query = req.query as { [K in keyof ICrawlerParams]: string };
-  console.log(
-    "🚀 ~ file: crawler-data.ts:63 ~ req.query.target_urls:1111",
-    query.target_urls
-  );
   let target_urls = filterValidURLs(query.target_urls);
   if (!target_urls.length) {
     res
@@ -88,7 +82,6 @@ export default async function handler(
   // 创建爬虫
   const crawler = new PlaywrightCrawler({
     async requestHandler({ request, page, enqueueLinks, log }) {
-      console.log("requestHandler", JSON.stringify(request, null, 2));
       const title = await page.title();
       log.info(`Page title: ${title}`);
 
@@ -117,7 +110,9 @@ export default async function handler(
   Configuration.resetGlobalState();
   await purgeDefaultStorages();
   // 关闭爬虫
-  await crawler.teardown();
+  if (crawler.running) {
+    await crawler.teardown();
+  }
 
   res.status(200).json({ success: true, data: crawlerData });
 }
