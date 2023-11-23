@@ -3,8 +3,19 @@
  * @Author: Sunly
  * @Date: 2023-11-22 14:17:33
  */
+import { useState } from "react";
+import Footer from "./footer";
 import Head from "next/head";
-import { Input, InputNumber, Button, Space, Divider, message } from "antd";
+import {
+  Input,
+  InputNumber,
+  Button,
+  Space,
+  Divider,
+  message,
+  Modal,
+  Tooltip,
+} from "antd";
 
 import styles from "@/styles/Home.module.css";
 
@@ -13,11 +24,10 @@ import type {
   ICrawlerParams,
   ICrawlerRes,
 } from "./api/crawler-data";
-import { useState } from "react";
-import Footer from "./footer";
 
 export default function Home() {
   const [messageApi, contextHolder] = message.useMessage();
+  const [modal, modalContextHolder] = Modal.useModal();
 
   const [urlsData, setUrlsData] = useState<ICrawlerParams>({
     target_urls: [""],
@@ -98,6 +108,26 @@ export default function Home() {
     link.href = window.URL.createObjectURL(blob);
     link.download = `data.json`;
     link.click();
+    modal.success(successModalConfig);
+  };
+
+  // 弹出框，导出后显示
+  const successModalConfig = {
+    title: "获取数据成功",
+    content: (
+      <>
+        <p>
+          1. 打开
+          <a
+            href="https://chat.openai.com/g/g-neAR0jAgY-crawlergpt"
+            target="_blank"
+          >
+            GPT机器人
+          </a>
+        </p>
+        <p>2. 将自动下载的数据作为文件上传，开始对话</p>
+      </>
+    ),
   };
 
   return (
@@ -110,6 +140,7 @@ export default function Home() {
       </Head>
 
       {contextHolder}
+      {modalContextHolder}
 
       <main className={`${styles.main} `}>
         <Divider orientation="left">目标网址</Divider>
@@ -138,7 +169,21 @@ export default function Home() {
         >
           添加一条目标网址
         </Button>
-        <Divider orientation="left">匹配网址规则</Divider>
+        <Divider orientation="left">
+          匹配网址规则
+          <Tooltip
+            title={
+              <>
+                <div>用来过滤需要爬取哪些网站，根据上面的目标网址设置：</div>
+                <div>1. https://a.com/* 只访问一级目录</div>
+                <div>2. https://a.com/*/x 匹配任何一级目录</div>
+                <div>3. https://a.com/** 匹配所有a.com开头的网址</div>
+              </>
+            }
+          >
+            <span className={`${styles.ruleDesc}`}>什么是匹配规则？</span>
+          </Tooltip>
+        </Divider>
         {urlsData.match_urls.map((url, i) => (
           <Space.Compact
             block
@@ -163,7 +208,19 @@ export default function Home() {
         >
           添加一条匹配规则
         </Button>
-        <Divider orientation="left">爬取页面最大数量</Divider>
+        <Divider orientation="left">
+          爬取页面最大数量
+          <Tooltip
+            title={
+              <>
+                <div>1. 数量越多，速度越慢</div>
+                <div>2. 太大的文本GPT无法分析</div>
+              </>
+            }
+          >
+            <span className={`${styles.ruleDesc}`}>数量不要太大</span>
+          </Tooltip>
+        </Divider>
         <InputNumber
           style={{ width: "100%" }}
           min={1}
@@ -173,11 +230,12 @@ export default function Home() {
           value={urlsData.max_pages}
           onChange={(value) => handleSetData("max_pages", value || 5)}
           className={`${styles.item} `}
+          addonAfter={"1 ~ 50"}
         />
-        <Divider orientation="left">页面CSS选择器</Divider>
+        <Divider orientation="left">内容CSS选择器</Divider>
         <Input
           value={urlsData.selector}
-          placeholder="请输入页面内容选择器，不填写则默认读取整个页面"
+          placeholder="默认为空，表示读取整个页面"
           onChange={(e) => handleSetData("selector", e.target.value)}
           className={`${styles.item} `}
         />
