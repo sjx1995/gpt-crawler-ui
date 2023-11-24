@@ -74,7 +74,12 @@ export default async function handler(
       .json({ success: false, errMessage: "请传入有效的目标网址" });
   }
   let selector = query.selector.trim() || "body";
-  let max_pages = Number(query.max_pages) > 50 ? 50 : Number(query.max_pages);
+  let max_pages =
+    Number(query.max_pages) < target_urls.length
+      ? target_urls.length
+      : Number(query.max_pages) > 50
+      ? 50
+      : Number(query.max_pages);
   let match_urls = filterValidURLs(query.match_urls);
 
   const crawlerData: ICrawlerRes[] = [];
@@ -94,6 +99,7 @@ export default async function handler(
 
     maxRequestsPerCrawl: max_pages,
     maxConcurrency: 1,
+    maxRequestRetries: 2,
   });
 
   // 开始爬取
